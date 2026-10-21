@@ -1,0 +1,35 @@
+services:
+  db:
+    build: ./db
+    image: coworking-db:latest
+    container_name: coworking-db
+    environment:
+      POSTGRES_USER: proyecto
+      POSTGRES_PASSWORD: 'Bac"!k&E%n"#$d'
+      POSTGRES_DB: coworking
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U proyecto -d coworking"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  api:
+    build: .
+    image: coworking-api:latest
+    container_name: coworking-api
+    environment:
+      DATABASE_URL: postgresql+asyncpg://proyecto:Bac%22!k%26E%25n%22%23%24d@db:5432/coworking
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+    # El healthcheck de la API viene definido en el Dockerfile (GET /)
+
+volumes:
+  pgdata:

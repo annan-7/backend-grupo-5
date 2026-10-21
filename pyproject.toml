@@ -1,0 +1,43 @@
+[project]
+name = "backend-2026-grupo-05"
+version = "1.2.0"
+description = "API REST para la gestión de reservas de espacios de coworking (Desarrollo de Backend, ICINF1108 — Grupo 05)"
+readme = "README.md"
+authors = [
+    { name = "Vicente Huilcaman" },
+    { name = "Matias Espinoza" },
+    { name = "Annan John", email = "annanrecord@gmail.com" },
+    { name = "Alonso Astete" },
+]
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi[standard]>=0.141.1",
+    "sqlalchemy[asyncio]>=2.0.36",
+    "asyncpg>=0.30.0",
+    "pydantic-settings>=2.6",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0",
+    "ruff>=0.6",
+    "aiosqlite>=0.20",
+]
+
+[build-system]
+requires = ["uv_build>=0.12.10,<0.13.0"]
+build-backend = "uv_build"
+
+[tool.uv]
+package = false
+
+[tool.ruff]
+line-length = 120
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"

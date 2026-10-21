@@ -1,0 +1,175 @@
+@baseUrl = http://localhost:8000
+
+### Comprobar que la API funciona
+GET {{baseUrl}}/
+
+### Crear un espacio
+POST {{baseUrl}}/spaces
+Content-Type: application/json
+
+{
+  "spaceName": "Sala Norte",
+  "type": "meeting_room",
+  "capacity": 10,
+  "status": "active",
+  "description": "Sala con proyector"
+}
+
+### Listar espacios con filtro, orden y paginacion
+GET {{baseUrl}}/spaces?type=meeting_room&status=active&sort_by=capacity&direction=asc&page=1&limit=20
+
+### Error de validacion: capacidad incorrecta (422 VALIDATION_ERROR)
+POST {{baseUrl}}/spaces
+Content-Type: application/json
+
+{
+  "spaceName": "Sala incorrecta",
+  "type": "meeting_room",
+  "capacity": 0,
+  "description": "Ejemplo de error"
+}
+
+### Error de validacion: tipo de espacio inexistente (422)
+POST {{baseUrl}}/spaces
+Content-Type: application/json
+
+{
+  "spaceName": "Sala tipo invalido",
+  "type": "no_existe",
+  "capacity": 5,
+  "description": "Ejemplo de error"
+}
+
+### Crear una empresa (RUT con digito verificador valido, modulo 11)
+POST {{baseUrl}}/companies
+Content-Type: application/json
+
+{
+  "companyName": "Empresa Uno",
+  "rut": "12345678-5",
+  "email": "empresa@ejemplo.cl",
+  "phone": "12345678",
+  "address": "Calle Principal 123"
+}
+
+### Empresa duplicada: mismo RUT (409 CONFLICT)
+POST {{baseUrl}}/companies
+Content-Type: application/json
+
+{
+  "companyName": "Empresa Duplicada",
+  "rut": "12345678-5",
+  "email": "otra@ejemplo.cl",
+  "phone": "87654321",
+  "address": "Otra Calle 456"
+}
+
+### RUT con digito verificador incorrecto (400 BUSINESS_RULE_VIOLATION)
+POST {{baseUrl}}/companies
+Content-Type: application/json
+
+{
+  "companyName": "Empresa Rut Malo",
+  "rut": "12345678-0",
+  "email": "mala@ejemplo.cl",
+  "phone": "12345678",
+  "address": "Calle Principal 123"
+}
+
+### Recurso que no existe (404 RESOURCE_NOT_FOUND)
+GET {{baseUrl}}/spaces/id-inexistente
+
+### Para las siguientes pruebas, reemplazar los ID con los obtenidos arriba
+@spaceId = REEMPLAZAR_ID_ESPACIO
+@companyId = REEMPLAZAR_ID_EMPRESA
+
+### Obtener un espacio por ID
+GET {{baseUrl}}/spaces/{{spaceId}}
+
+### Actualizar un espacio (PUT acepta actualizacion parcial; PATCH es alias)
+PUT {{baseUrl}}/spaces/{{spaceId}}
+Content-Type: application/json
+
+{
+  "capacity": 12
+}
+
+### Obtener una empresa por ID
+GET {{baseUrl}}/companies/{{companyId}}
+
+### Actualizar una empresa
+PUT {{baseUrl}}/companies/{{companyId}}
+Content-Type: application/json
+
+{
+  "phone": "87654321"
+}
+
+### Crear una disponibilidad
+POST {{baseUrl}}/availabilities
+Content-Type: application/json
+
+{
+  "spaceId": "{{spaceId}}",
+  "weekday": "monday",
+  "opening_time": "09:00:00",
+  "closing_time": "18:00:00"
+}
+
+### Disponibilidad solapada mismo espacio+dia (409 CONFLICT)
+POST {{baseUrl}}/availabilities
+Content-Type: application/json
+
+{
+  "spaceId": "{{spaceId}}",
+  "weekday": "monday",
+  "opening_time": "10:00:00",
+  "closing_time": "12:00:00"
+}
+
+### Listar disponibilidades con filtros y paginacion
+GET {{baseUrl}}/availabilities?space_id={{spaceId}}&weekday=monday&page=1&limit=10
+
+### Crear una reserva (nace siempre en estado "pending")
+POST {{baseUrl}}/reservations
+Content-Type: application/json
+
+{
+  "spaceId": "{{spaceId}}",
+  "companyId": "{{companyId}}",
+  "start_date": "2030-01-10T10:00:00",
+  "end_date": "2030-01-10T11:00:00",
+  "reason": "Reunion de planificacion"
+}
+
+### Intentar una reserva superpuesta: debe responder 409 CONFLICT
+POST {{baseUrl}}/reservations
+Content-Type: application/json
+
+{
+  "spaceId": "{{spaceId}}",
+  "companyId": "{{companyId}}",
+  "start_date": "2030-01-10T10:30:00",
+  "end_date": "2030-01-10T11:30:00",
+  "reason": "Reserva en conflicto"
+}
+
+### Confirmar una reserva (transicion pending -> confirmed)
+POST {{baseUrl}}/reservations/REEMPLAZAR_ID_RESERVA/confirm
+
+### Cancelar una reserva (libera el horario; transicion a "canceled", terminal)
+POST {{baseUrl}}/reservations/REEMPLAZAR_ID_RESERVA/cancel
+
+### Transicion ilegal: canceled -> confirmed (400 BUSINESS_RULE_VIOLATION)
+PUT {{baseUrl}}/reservations/REEMPLAZAR_ID_RESERVA
+Content-Type: application/json
+
+{
+  "status": "confirmed"
+}
+
+### Listar reservas con filtros (space_id, company_id, status), orden y paginacion
+GET {{baseUrl}}/reservations?page=1&limit=20&sort_by=created_at&direction=desc
+
+### Filtrar reservas por estado
+GET {{baseUrl}}/reservations?status=pending&company_id={{companyId}}

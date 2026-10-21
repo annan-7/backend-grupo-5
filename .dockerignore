@@ -1,0 +1,34 @@
+# Git
+.git
+.gitignore
+
+# Entornos virtuales (el venv de producción se construye dentro de la imagen)
+.venv
+venv
+
+# Python
+__pycache__
+*.py[cod]
+*.egg-info
+.pytest_cache
+.ruff_cache
+.mypy_cache
+.coverage
+htmlcov
+
+# Tests y material de curso (no van en la imagen de producción)
+tests
+tests_manual
+Reglamento_Grupal.pdf
+
+# Docker (no se necesita dentro del contexto)
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+# Documentación y varios
+README.md
+LICENSE
+*.patch
+.env
+.env.*
